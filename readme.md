@@ -1,1 +1,1 @@
-# ESP32 Google Cloud IoT Core example with PlatformIO and the Arduino framework
+# ESP32 Google Cloud IoT Core example
