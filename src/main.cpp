@@ -104,8 +104,16 @@ bool itsTimeToPublish() {
 }
 
 void messageReceived(String &topic, String &payload) {
-  Serial.println("Received message on topic: " + topic);
-  Serial.println("Message payload: " + payload);
+  Serial.printf("Received message\r\n");
+  Serial.printf("Topic           :  %s\r\n", topic);
+  Serial.printf("Payload         :  %.*s\r\n", payload);
+}
+
+void messageReceivedAdvanced(MQTTClient *client, char topic[], char bytes[], int length) {
+  Serial.printf("Received message\r\n");
+  Serial.printf("Topic           :  %s\r\n", topic);
+  Serial.printf("Payload length  :  %d\r\n", length);
+  Serial.printf("Payload         :  %.*s\r\n", length, bytes);
 }
 
 String getJwt() {
