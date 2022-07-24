@@ -1,2 +1,4 @@
 .pio
 .vscode
+certs/*.pem
+include/iot_core_config.h

@@ -13,15 +13,11 @@ void setupTime();
 void setupCloudIoT();
 bool itsTimeToPublish();
 
-#ifndef LED_BUILTIN
-#define LED_BUILTIN          13
-#endif // LED_BUILTIN
-
-#define SERIAL_SPEED         115200
-#define WIFI_SSID            "PUT_YOUR_SSID_HERE"
-#define WIFI_PASSWORD        "PUT_YOUR_PASSWORD_HERE"
-#define PRIMARY_NTP_SERVER   "pool.ntp.org"
-#define SECONDARY_NTP_SERVER "time.nist.gov"
+#define SERIAL_SPEED             115200
+#define WIFI_SSID                "REPLACE_WITH_YOUR_SSID"
+#define WIFI_PASSWORD            "REPLACE_WITH_YOUR_PASSWORD"
+#define PRIMARY_NTP_SERVER       "pool.ntp.org"
+#define SECONDARY_NTP_SERVER     "time.nist.gov"
 
 CloudIoTCoreDevice *deviceObject;
 WiFiClientSecure *networkClientObject;
@@ -30,11 +26,11 @@ MQTTClient *mqttClientObject;
 
 void setup() {
   Serial.begin(SERIAL_SPEED);
-  pinMode(LED_BUILTIN, OUTPUT);
 
   setupWifi();
   setupTime();
   setupCloudIoT();
+  iotCoreObject->publishState("{\"message\": \"Device started successfully!\"}");
 }
 
 void loop() {
@@ -46,7 +42,8 @@ void loop() {
     iotCoreObject->mqttConnect();
   }
 
-  if(itsTimeToPublish()) {
+  if (itsTimeToPublish()) {
+    Serial.println("It's time to publish telemetry");
     iotCoreObject->publishTelemetry("/sensors", "{\"message\": \"Hello world!\"}");
   }
 }
@@ -54,7 +51,7 @@ void loop() {
 void setupWifi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.println("Connecting to WiFi");
+  Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(200);
@@ -63,6 +60,8 @@ void setupWifi() {
 }
 
 void setupTime() {
+  struct tm timeInfo;
+
   configTime(0, 0, PRIMARY_NTP_SERVER, SECONDARY_NTP_SERVER);
   Serial.print("Waiting on time sync");
   while (time(nullptr) < 1510644967) {
@@ -70,6 +69,13 @@ void setupTime() {
     delay(200);
   }
   Serial.println("");
+  if (getLocalTime(&timeInfo)) {
+    Serial.println(&timeInfo, "Today is: %A, %B %d %Y %H:%M:%S");
+  }
+  else
+  {
+    Serial.println("Failed to obtain time");
+  }
 }
 
 void setupCloudIoT() {
@@ -104,16 +110,12 @@ bool itsTimeToPublish() {
 }
 
 void messageReceived(String &topic, String &payload) {
-  Serial.printf("Received message\r\n");
-  Serial.printf("Topic           :  %s\r\n", topic);
-  Serial.printf("Payload         :  %.*s\r\n", payload);
+  Serial.println("Received message");
+  Serial.println("Topic   : " + topic);
+  Serial.println("Payload : " + payload);
 }
 
 void messageReceivedAdvanced(MQTTClient *client, char topic[], char bytes[], int length) {
-  Serial.printf("Received message\r\n");
-  Serial.printf("Topic           :  %s\r\n", topic);
-  Serial.printf("Payload length  :  %d\r\n", length);
-  Serial.printf("Payload         :  %.*s\r\n", length, bytes);
 }
 
 String getJwt() {
